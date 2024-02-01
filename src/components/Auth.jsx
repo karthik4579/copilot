@@ -18,11 +18,11 @@ const AuthenticationPage = () => (
     <TypeAnimation
   sequence={[
     'Hello there, i\'m Copilot 👋',
-    1000, 
+    1500, 
     'I can help you with your grammatical mistakes ✍️',
-    1000,
+    1500,
     'I can help you be more creative 🧠',
-    1000,
+    1500,
     '👈 Signup here to get started ! '
   ]}
   wrapper="span"
