@@ -1,0 +1,1 @@
+# This is the frontend written in React for Writer's Copilot
