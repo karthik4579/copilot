@@ -1,1 +1,1 @@
-# This is the frontend written in React for Writer's Copilot
+# This is the frontend written in React for Writer's Copilot and uses Framer-Motion for animation.
