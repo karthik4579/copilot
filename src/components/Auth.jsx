@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import "@/styles/authpage.css";
-import { MascotLogo } from "@/components/Logo";
+import  MascotLogo from "@/components/Logo";
 import { TypeAnimation } from 'react-type-animation';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -13,22 +13,22 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthenticationPage = () => (
   <div class ="main-container">
-    <MascotLogo />
     <div class="typing-animation">
     <TypeAnimation
   sequence={[
     'Hello there, i\'m Copilot 👋',
-    1500, 
+    1000, 
     'I can help you with your grammatical mistakes ✍️',
-    1500,
+    1000,
     'I can help you be more creative 🧠',
-    1500,
-    '👈 Signup here to get started ! '
+    1000,
+    '👈 Signup here to get started !',
+    1100
   ]}
   wrapper="span"
   cursor={true}
   repeat={Infinity}
-  style={{color: '#FFFFF0', fontSize: '2em', display: 'inline-block' }}
+  style={{color: '#FFFFF0', fontSize: '3vw', display: 'inline-block', width: '40vw'}}
   />
   </div>
   <div class="auth-card-container">
@@ -41,7 +41,9 @@ const AuthenticationPage = () => (
   />
   </div>
   </div>
+  <MascotLogo />
   </div>
 );
+
 
 export default AuthenticationPage;
