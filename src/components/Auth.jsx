@@ -5,6 +5,8 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import "@/styles/authpage.css";
 import  MascotLogo from "@/components/Logo";
 import { TypeAnimation } from 'react-type-animation';
+import { motion } from "framer-motion";
+import "@fontsource/inter";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -12,8 +14,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthenticationPage = () => (
-  <div class ="main-container">
-    <div class="typing-animation">
+  <div class ="grid-container">
+    <motion.div className="typing-animation" animate={{ opacity: 1, y: 10 }}
+    initial={{ opacity: 0, y: 1 }}
+    transition={{ duration: 0.8, ease: "easeIn" }}>
     <TypeAnimation
   sequence={[
     'Hello there, i\'m Copilot 👋',
@@ -30,17 +34,24 @@ const AuthenticationPage = () => (
   repeat={Infinity}
   style={{color: '#FFFFF0', fontSize: '3vw', display: 'inline-block', width: '40vw'}}
   />
-  </div>
-  <div class="auth-card-container">
+  </motion.div>
+  <div class="left-side-shade"></div>
+  <motion.div animate={{ opacity: 1, scale: 1 }}
+  initial={{ opacity: 0, scale: 0 }}
+  transition={{ duration: 0.7, ease: "easeIn" }}>
   <div class="auth-card">
   <Auth
     supabaseClient={supabase}
-    appearance={{ theme: ThemeSupa }}
+    appearance={{
+      theme: ThemeSupa,
+    }}
     theme='dark'
     providers={["google", "facebook"]}
   />
   </div>
-  </div>
+  </motion.div>
+  <img class="app-logo" src="./src/assets/copilot_mascot.png" alt="logo"></img>
+  <div class="app-name">Copilot</div>
   <MascotLogo />
   </div>
 );

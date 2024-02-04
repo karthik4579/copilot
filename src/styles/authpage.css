@@ -1,15 +1,41 @@
 body {
   margin: 0;
-  background-color: #222;
+  background-color: #161616;
   overflow: hidden;
+  font-family: 'Inter';
 }
 
-.main-container {
+.app-logo {
+  position: absolute;
+  margin-top: 1%;
+  margin-left: 1%;
+  max-width: 8%;
+  max-height: 8%;
+}
+
+.app-name{
+  position: absolute;
+  font-family: "Inter";
+  color: #FFFFF0;
+  font-size: 4vh;
+  margin-left: 5.2%;
+  margin-top: 1.6%;
+}
+
+.left-side-shade{
+  position: absolute;
+  width: 40%;
+  height:100%;
+  z-index: -1;
+  background-color: #1c1c1c;
+  border-right: 0.1px solid #a8a2a2;
+}
+
+.grid-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
   padding-right: 20%;
-  margin-top: 10vh;
 }
 
 .typing-animation {
@@ -19,8 +45,8 @@ body {
   height: 100%;
   grid-row: 1/2;
   grid-column: 3;
-  margin-top: 30%;
-  margin-left: 9%;
+  margin-top: 35%;
+  margin-left: 28%;
 }
 
 .auth-card {
@@ -29,7 +55,7 @@ body {
   background-color: #222;
   padding: 20px;
   border-radius: 10px;
-  margin-top: 15%;
-  margin-left: 30%;
+  margin-top: 53%;
+  margin-left: 35%;
   box-shadow: 0 0 20px 10px #b400ff;
 }

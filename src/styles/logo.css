@@ -3,24 +3,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Default width and height */
   width: 160%;
-  height: 75%;
-  margin-left: 140%;
+  height: 65%;
+  margin-left: 185%;
+  margin-top: 17%;
 }
 
-/* Media query for 1920x1080 screens */
+
 @media (min-width: 1920px) and (max-width: 1920px) and (min-height: 1080px) and (max-height: 1080px) {
   .mascot-logo {
     width: 160%;
-    height: 75%;
+    height: 65%;
   }
 }
 
-/* Media query for 1366x768 screens */
 @media (min-width: 1366px) and (max-width: 1366px) and (min-height: 768px) and (max-height: 768px) {
   .mascot-logo {
-    width: 170%;
-    height: 70%;
+    width: 160%;
+    height: 50%;
   }
 }
