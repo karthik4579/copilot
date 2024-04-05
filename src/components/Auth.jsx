@@ -1,5 +1,4 @@
-import React from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useEffect } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import "@/styles/authpage.css";
@@ -7,26 +6,47 @@ import  MascotLogo from "@/components/Logo";
 import { TypeAnimation } from 'react-type-animation';
 import { motion } from "framer-motion";
 import "@fontsource/inter";
+import { useNavigate } from "react-router-dom";
+import supabase from "@/utils/GetSupabaseClient"
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+function AuthenticationPage () {
+  
+  async function isUserLoggedIn() {
+    const user = await supabase.auth.getUser();
+    if (user) {
+      if (user["data"]["user"]["role"] == "authenticated") {
+        return true;
+      }
+      else {
+      return false;
+    }
+  }
+  }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-const AuthenticationPage = () => (
+  async function UserAuthCheck(){     
+    const navigate = useNavigate();
+    const status = await isUserLoggedIn();
+    console.log(status)
+    if (status == true) {
+         navigate('/dashboard');
+         console.log("navigated to dashboard")
+    }
+  }
+UserAuthCheck()
+  return(
   <div class ="grid-container">
     <motion.div className="typing-animation" animate={{ opacity: 1, y: 10 }}
     initial={{ opacity: 0, y: 1 }}
     transition={{ duration: 0.8, ease: "easeIn" }}>
     <TypeAnimation
   sequence={[
-    'Hello there, i\'m Copilot 👋',
+    'Wanna write ... ✍️  ?',
     1000, 
-    'I can help you with your grammatical mistakes ✍️',
+    'Correct Grammar ... 🔍 ?',
     1000,
-    'I can help you be more creative 🧠',
+    'Be more creative ... 🧠 ?',
     1000,
-    '👈 Signup here to get started !',
+    '👈 Try Copilot Today !',
     1100
   ]}
   wrapper="span"
@@ -39,13 +59,24 @@ const AuthenticationPage = () => (
   <motion.div animate={{ opacity: 1, scale: 1 }}
   initial={{ opacity: 0, scale: 0 }}
   transition={{ duration: 0.7, ease: "easeIn" }}>
-  <div class="auth-card">
+  <div className="auth-card">
   <Auth
     supabaseClient={supabase}
     appearance={{
       theme: ThemeSupa,
+      style:{
+        message: {
+          'position': 'fixed',
+          'top':'0',
+          'right':'0',
+          'margin':'20px',
+          'padding':'5px',
+          'animation': 'toastAnimation 0.5s ease forwards'
+        }
+      }
     }}
     theme='dark'
+    redirectTo='http://localhost:5173/dashboard'
     providers={["google", "facebook"]}
   />
   </div>
@@ -55,6 +86,6 @@ const AuthenticationPage = () => (
   <MascotLogo />
   </div>
 );
-
+}
 
 export default AuthenticationPage;

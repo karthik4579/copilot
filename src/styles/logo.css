@@ -6,20 +6,22 @@
   width: 160%;
   height: 65%;
   margin-left: 185%;
-  margin-top: 17%;
+  margin-top: 11%;
 }
 
 
-@media (min-width: 1920px) and (max-width: 1920px) and (min-height: 1080px) and (max-height: 1080px) {
+@media (max-height: 1080px) {
   .mascot-logo {
-    width: 160%;
-    height: 65%;
+    width: 230%;
+    margin-left: 225%;
+    height: 70%;
+    margin-top: 11%;
   }
 }
 
 @media (min-width: 1366px) and (max-width: 1366px) and (min-height: 768px) and (max-height: 768px) {
   .mascot-logo {
-    width: 160%;
+    width: 165%;
     height: 50%;
   }
 }
