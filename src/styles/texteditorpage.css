@@ -7,22 +7,20 @@ body {
   overflow: hidden;
 }
 
-
-  .right-side-shade {
-    position: absolute;
-    width: 56%;
-    height: 100%;
-    z-index: -1;
-    background-color: #161616;
-    border-right: 1px solid #a8a2a2;
-}
-
 .creative-ai-button{
   position: absolute;
   width: 15vw;
   height: 4vw;
   left: 61%;
   top: 7vh;
+}
+.right-side-shade {
+  position: absolute;
+  width: 56%;
+  height: 100%;
+  z-index: -1;
+  background-color: #161616;
+  border-right: 1px solid #a8a2a2;
 }
 
 .grammar-ai-button{
@@ -31,4 +29,8 @@ body {
   height: 4vw;
   left: 64%;
   top: 7vh;
+}
+
+.highlight-toggle{
+  color: white;
 }

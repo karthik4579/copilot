@@ -8,19 +8,19 @@ import Button from "@mui/material/Button";
 import Cookies from "js-cookie";
 import Box from "@mui/material/Box";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import supabase from "@/utils/GetSupabaseClient";
 import { Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import "@/styles/dashboard.css";
 import EditIcon from "@mui/icons-material/Edit";
+import axios from "axios";
+
 
 function DashboardPage() {
   const [new_filename, set_new_filename] = useState("test_file");
   const [show_input, set_show_input] = useState(false);
   const [AllFileData, set_AllFileData] = useState([]);
   const [username, set_username] = useState("user");
-  const [UserID, set_UserID] = useState("");
   const redirect = useNavigate();
 
   function redirect_to_editor(file_id, file_name, file_data) {
@@ -28,35 +28,47 @@ function DashboardPage() {
   }
 
   async function create_new_file(fileName) {
-    await supabase
-      .from("file_data")
-      .insert([
-        {
-          user_id: UserID,
-          file_name: fileName,
-          last_opened: moment().format("YYYY-MM-DDTHH:mm:ss"),
-        },
-      ]);
-    set_show_input(false);
-    window.location.reload();
-  }
+    const data = {
+      user_id: Cookies.get("id"),
+      file_name: fileName,
+      last_opened: moment().format("YYYY-MM-DDTHH:mm:ss")
+    };
+  
+      const insertfile = await axios.post('https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data', data, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+  }});
+      if(insertfile.status == 200){
+        set_show_input(false);
+        const updatedfilelist = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?user_id=eq.${Cookies.get("id")}&select=*`,{headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
+        }})
+        set_AllFileData(updatedfilelist.data);
+      }
+      set_show_input(false);
+      document.location.reload();
+    }
 
   useEffect(() => {
-    async function handle_user_data() {
-      const username = await supabase
-        .from("user_data")
-        .select("user_name")
-        .eq("user_id", Cookies.get("id"));
+    async function get_username_filedata() {
+      const username = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/user_data?user_id=eq.${Cookies.get("id")}&select=user_name`,{headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
+      }})
       set_username(username.data[0].user_name);
-      const AllFileData = await supabase
-        .from("file_data")
-        .select("*")
-        .eq("user_id", Cookies.get("id"));
-      set_AllFileData(AllFileData.data);
-      set_UserID(Cookies.get("id"));
+      const allfiledata = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?user_id=eq.${Cookies.get("id")}&select=*`,{headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
+      }})
+      set_AllFileData(allfiledata.data);
     }
-    handle_user_data();
-  }, []);
+    get_username_filedata();
+    }
+  , []);
 
   return (
     <div>

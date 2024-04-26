@@ -4,9 +4,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardPage from "@/components/Dashboard";
 import "@/styles/globals.css";
 import "@fontsource/inter";
+import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+        
 
 function App() {
   return (
+    <PrimeReactProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<AuthenticationPage />} />
@@ -14,6 +17,7 @@ function App() {
         <Route path="/edit" element={<TextEditor />} />
       </Routes>
     </BrowserRouter>
+    </PrimeReactProvider>
   );
 }
 

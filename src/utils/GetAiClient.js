@@ -1,4 +1,3 @@
-import fs from "fs";
 import Groq from "groq-sdk";
 
 const client = new Groq({

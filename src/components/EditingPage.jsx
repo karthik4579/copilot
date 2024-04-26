@@ -13,23 +13,113 @@ import Snackbar from "@mui/material/Snackbar";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
-import ToggleButton from "@mui/material/ToggleButton";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Card from "@mui/material/Card";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import moment from "moment";
-import GenAIAccordian from "@/components/GenAccordian";
+import { ToggleButton } from 'primereact/togglebutton';
+import axios from "axios";
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import "@/styles/texteditorpage.css"
+
 
 function TextEditor() {
-  const [GrammerSug, SetGrammarSug] = useState([]);
-  const [CreativeSug, SetCreativeSug] = useState([]);
+  const [CurrentSuggestion, SetCurrentSuggestion] = useState("");
   const [EditorContent, setEditorContent] = useState("");
   const [passedFileData, setPassedFileData] = useState("");
   const [NotificationStatus, setNotificationStatus] = useState(false);
+  const [checked, setChecked] = useState(false);
+
 
   const location = useLocation();
   const editorRef = useRef(null);
+
+  function SetSuggestion(suggestion) {
+    SetCurrentSuggestion(suggestion);
+  }
+
+  function ConditionalAiCardContents() {
+    const finaldata = CurrentSuggestion;
+    if (CurrentSuggestion) {
+      return (
+        <div>
+          {Object.entries(finaldata).map(([key, value], index) => (
+            <Accordion
+              key={index}
+              style={{ background: "#949799", padding: "1%" }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="body1">{key}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body1" style={{ padding: "1%" }}>
+                  {<AutoAwesomeIcon />} Copilot's version:{" "}
+                </Typography>
+                <Typography style={{paddingBottom:"4vh",}} variant="body1">{value}</Typography>
+                <Box sx={{
+                position: "relative",
+                top:"1.5vh",
+                border: "2px solid white",
+                borderRadius: "10px",
+                width: "12vw",
+                height: "6vh",
+                padding:"1%",
+                background: "#424949",
+                display:"flex",
+                alignItems:"center",
+              }}>
+                <ToggleButton style={{color:"white"}} onLabel="Highlight ON" offLabel="Highlight OFF" onIcon={<VisibilityIcon/>} offIcon={<VisibilityIcon/>} 
+                checked={checked} onChange={(e) => {
+                  console.log(e.value)
+                  setChecked(e.value)
+                  HighlightText(key,e.value)}} className="highlight-toggle" />
+              </Box>
+              <Button startIcon={<AutoFixHighIcon/>} variant="contained"  style={{ background: "#424949" ,border:"2px solid white",borderRadius: "10px",bottom:"6.8vh",left:"19.5vw", width: "12vw",height: "8vh"}} onClick={async()=>{
+                const RawHtml = editorRef.current.getContent().replace("&nbsp;", "");
+                const NewRawHtml = RawHtml.replace(
+                  `${key}`,
+                  `${value}`
+                );
+                setEditorContent(NewRawHtml);
+                editorRef.current.setContent(NewRawHtml);
+                const filedata = { file_data: NewRawHtml };
+        await axios.patch(
+          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
+          filedata,
+          {
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal",
+            },
+          }
+        );
+              }}>Replace</Button>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </div>
+      );
+    } else {
+      return (
+        <Typography
+          variant="h5"
+          style={{
+            position: "relative",
+            color: "white",
+            top: "42%",
+            opacity: "50%",
+          }}
+        >
+          No suggestions yet 😊
+        </Typography>
+      );
+    }
+  }
 
   useEffect(() => {
     const fileData = location.state;
@@ -39,30 +129,65 @@ function TextEditor() {
         .from("file_data")
         .update({ last_opened: moment().format("YYYY-MM-DDTHH:mm:ss") })
         .eq("file_id", passedFileData.file_id);
+      setEditorContent(passedFileData.file_data);
     };
   }, []);
 
+  useEffect(() => {
+    async function get_file_data() {
+      const filedata = await axios.get(
+        `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}&select=file_data`,
+        {
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            Authorization: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+        }
+      );
+      setEditorContent(filedata.data[0].file_data);
+    }
+    get_file_data();
+  }, [passedFileData]);
+
   async function SaveContent(receivedEvent, FromEditor) {
     if (FromEditor) {
+      const documentContent = editorRef.current.getContent();
       if (editorRef.current) {
-        const documentContent = editorRef.current.getContent();
         setNotificationStatus(true);
-        const { data, error } = await supabase
-          .from("file_data")
-          .update({ file_data: documentContent })
-          .eq("file_id", passedFileData.file_id);
+        const filedata = { file_data: documentContent };
+        await axios.patch(
+          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
+          filedata,
+          {
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal",
+            },
+          }
+        );
         setEditorContent(documentContent);
       }
     } else {
       receivedEvent.preventDefault();
+      const documentContent2 = editorRef.current.getContent();
       if (editorRef.current) {
-        const documentContent = editorRef.current.getContent();
         setNotificationStatus(true);
-        const { data, error } = await supabase
-          .from("file_data")
-          .update({ file_data: documentContent })
-          .eq("file_id", passedFileData.file_id);
-        setEditorContent(documentContent);
+        const filedata = { file_data: documentContent2 };
+        await axios.patch(
+          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
+          filedata,
+          {
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal",
+            },
+          }
+        );
+        setEditorContent(documentContent2);
       }
     }
   }
@@ -91,12 +216,12 @@ function TextEditor() {
 
   async function get_ai_response(type) {
     const GrammarResponse = await fetch(
-      "https://gist.githubusercontent.com/karthik4579/496a2a095355a952d18bc6b29e348d78/raw/90cb34f8024749073771c0d3dea3eddc81c990be/grammar_prompt.txt"
+      "https://gist.githubusercontent.com/karthik4579/496a2a095355a952d18bc6b29e348d78/raw/9cf68455e7c2ad62c51aa2b69ea0208eb264b776/grammar_prompt.txt"
     );
     const GrammarTxtContents = await GrammarResponse.text();
 
     const CreativeResponse = await fetch(
-      "https://gist.githubusercontent.com/karthik4579/3995b4d40e565ea3f552fe4737edd8f0/raw/7fa9d9af621e2d949290f3b93fe4ebf943b631df/creative_prompt.txt"
+      "https://gist.githubusercontent.com/karthik4579/3995b4d40e565ea3f552fe4737edd8f0/raw/09a31d2a9bddf71b97cd13a79dc6969fac2b7a70/creative_prompt.txt"
     );
     const CreativeTxtContents = await CreativeResponse.text();
 
@@ -104,7 +229,6 @@ function TextEditor() {
     const parser = new DOMParser();
     const HtmlDoc = parser.parseFromString(InputText, "text/html");
     const ProcessedInput = HtmlDoc.documentElement.textContent;
-    console.log(ProcessedInput);
     if (type == "grammar") {
       const response = await client.chat.completions.create({
         messages: [
@@ -112,38 +236,36 @@ function TextEditor() {
           { role: "user", content: "INPUT TEXT:" + "\n" + "" + ProcessedInput },
         ],
         model: "mixtral-8x7b-32768",
-        response_format: { type: "json_object" },
         temperature: 0.5,
         top_p: 0.55,
         stream: false,
-        max_tokens: 3500,
+        max_tokens: 4000,
+        response_format: { type: "json_object" },
       });
-      return response.choices[0].message.content;
+      return JSON.parse(response.choices[0].message.content);
     } else {
       const parser = new DOMParser();
       const HtmlDoc = parser.parseFromString(InputText, "text/html");
       const ProcessedInput = HtmlDoc.documentElement.textContent;
-      console.log(ProcessedInput);
       const response = await client.chat.completions.create({
         messages: [
           { role: "system", content: CreativeTxtContents },
           { role: "user", content: "INPUT TEXT:" + "\n" + "" + ProcessedInput },
         ],
         model: "mixtral-8x7b-32768",
-        response_format: { type: "json_object" },
         temperature: 0.7,
         top_p: 0.9,
         stream: false,
-        max_tokens: 3500,
+        max_tokens: 4000,
+        response_format: { type: "json_object" },
       });
-        return response.choices[0].message.content;
+      return JSON.parse(response.choices[0].message.content);
     }
   }
 
   if (passedFileData) {
     return (
       <div>
-        <div className="right-side-shade"></div>
         <Snackbar
           open={NotificationStatus}
           autoHideDuration={4000}
@@ -168,21 +290,22 @@ function TextEditor() {
               <CheckCircleIcon style={{ color: "green" }} />
               <Typography
                 variant="body"
-                style={{ postion: "relative", paddingLeft: "4vw" }}
+                style={{ postion: "inherit", paddingLeft: "4vw" }}
               >
                 Document saved
               </Typography>
             </div>
           }
         />
+        <div className="right-side-shade"></div>
         <Button
           startIcon={<AutoAwesomeIcon />}
           className="creative-ai-button"
           variant="contained"
           style={{ background: "#424949" }}
-          onClick={async() => {
+          onClick={async () => {
             let results = await get_ai_response("creative");
-            SetGrammarSug(results);
+            SetSuggestion(results);
           }}
         >
           Creative suggestions
@@ -192,18 +315,37 @@ function TextEditor() {
           className="grammar-ai-button"
           variant="contained"
           style={{ background: "#424949" }}
-          onClick={async() => {
+          onClick={async () => {
             let results = await get_ai_response("grammar");
-            SetGrammarSug(results);
+            SetSuggestion(results);
+            console.log(CurrentSuggestion);
           }}
         >
           Grammar suggestions
         </Button>
-        {console.log(GrammerSug)}
 
-          <GenAIAccordian
-              GeneratedResults={GrammerSug}
-            />
+        <Card
+          style={{
+            position: "absolute",
+            width: "35vw",
+            left: "59vw",
+            top: "21vh",
+            padding: "10px",
+            overflowX: "hidden",
+            overflowY: "scroll",
+            height: "70vh",
+            boxShadow: "0 0 10px 10px #b400ff",
+            borderRadius: "15px",
+            backgroundColor: "#161616",
+            scrollbarWidth: "none",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {ConditionalAiCardContents()}
+        </Card>
+
         <div>
           <img
             className="app-logo"
@@ -211,12 +353,12 @@ function TextEditor() {
             alt="logo"
           ></img>
           <div className="app-name">Copilot</div>
-          <Box style={{ position: "relative", top: "5vh", left: "2.5vw" }}>
+          <Box style={{ position: "absolute", bottom: "5vh", left: "2.5vw" }}>
             <Typography
               sx={{
                 border: "2px solid grey",
                 borderRadius: "10px",
-                width: "fit-content",
+                width: "12vw",
                 height: "auto",
                 padding: "1px",
               }}
@@ -234,7 +376,7 @@ function TextEditor() {
               style={{ borderRadius: "10px" }}
               apiKey={import.meta.env.VITE_TINYMCE_LICENSE_KEY}
               onInit={(evt, editor) => (editorRef.current = editor)}
-              initialValue={passedFileData.file_data}
+              initialValue={EditorContent}
               init={{
                 init_instance_callback: function (editor) {
                   editor.addShortcut("ctrl+s", "Custom Ctrl+S", (InitEvent) => {
@@ -245,7 +387,7 @@ function TextEditor() {
                 skin: "oxide-dark",
                 content_css: "dark",
                 height: 420,
-                width: 650,
+                width: 660,
                 menubar: true,
                 plugins:
                   "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown",
@@ -261,7 +403,7 @@ function TextEditor() {
       </div>
     );
   }
- // if()
+  // if()
 }
 
 export default TextEditor;
