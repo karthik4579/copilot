@@ -13,62 +13,99 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import "@/styles/dashboard.css";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Avatar from "@mui/material/Avatar";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // Imported AccountCircleIcon
 import axios from "axios";
-
+import supabase from "@/utils/GetSupabaseClient";
 
 function DashboardPage() {
   const [new_filename, set_new_filename] = useState("test_file");
   const [show_input, set_show_input] = useState(false);
   const [AllFileData, set_AllFileData] = useState([]);
-  const [username, set_username] = useState("user");
+  const [userInfo, setUserInfo] = useState({ username: "user", userid: "" });
   const redirect = useNavigate();
 
   function redirect_to_editor(file_id, file_name, file_data) {
     redirect("/edit", { state: { file_id, file_name, file_data } });
   }
 
-  async function create_new_file(fileName) {
+  async function CreateNewFile(fileName) {
     const data = {
-      user_id: Cookies.get("id"),
+      user_id: userInfo["userid"],
       file_name: fileName,
-      last_opened: moment().format("YYYY-MM-DDTHH:mm:ss")
+      last_opened: moment().format("YYYY-MM-DDTHH:mm:ss"),
     };
-  
-      const insertfile = await axios.post('https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data', data, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-  }});
-      if(insertfile.status == 200){
+    try {
+      const insertfile = await supabase.from("file_data").insert(data);
+      if (insertfile.status === 201) {
         set_show_input(false);
-        const updatedfilelist = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?user_id=eq.${Cookies.get("id")}&select=*`,{headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
-        }})
+        const updatedfilelist = await supabase
+          .from("file_data")
+          .select("*")
+          .eq("user_id", userInfo["userid"]);
         set_AllFileData(updatedfilelist.data);
       }
-      set_show_input(false);
-      document.location.reload();
+    } catch (error) {
+      console.error("Error creating a new file:", error);
     }
+  }
+
+  async function HandleFileDelete(file_id) {
+    try {
+      const response = await supabase
+        .from("file_data")
+        .delete()
+        .eq("file_id", file_id);
+
+      if (response.status === 201 || response.status === 204) {
+        const updatedfilelist = await supabase
+          .from("file_data")
+          .select("*")
+          .eq("user_id", userInfo["userid"]);
+        set_AllFileData(updatedfilelist.data);
+      } else {
+        console.error("Failed to delete the file:", response);
+      }
+    } catch (error) {
+      console.error("Error deleting the file:", error);
+    }
+  }
 
   useEffect(() => {
-    async function get_username_filedata() {
-      const username = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/user_data?user_id=eq.${Cookies.get("id")}&select=user_name`,{headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
-      }})
-      set_username(username.data[0].user_name);
-      const allfiledata = await axios.get(`https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?user_id=eq.${Cookies.get("id")}&select=*`,{headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': import.meta.env.VITE_SUPABASE_ANON_KEY
-      }})
-      set_AllFileData(allfiledata.data);
+    async function getUserInfo() {
+      try {
+        const userData = await supabase.auth.getUser();
+        const userName = await supabase
+          .from("user_data")
+          .select("user_name")
+          .eq("user_id", userData["data"]["user"]["id"]);
+        setUserInfo((prev)=>{
+          return{
+          ...prev,
+          username: userName["data"][0]["user_name"],
+          userid: userData["data"]["user"]["id"],
+        }
+        });
+      } catch (error) {
+        console.error("Error fetching user data", error);
+      }
     }
-    get_username_filedata();
+    async function getFileData() {
+      try {
+        const userData = await supabase.auth.getUser();
+        const allfiledata = await supabase
+          .from("file_data")
+          .select("*")
+          .eq("user_id", userData["data"]["user"]["id"]);
+        set_AllFileData(allfiledata.data);
+      } catch (error) {
+        console.error("Error fetching file data", error);
+      }
     }
-  , []);
+    getUserInfo();
+    getFileData();
+  }, []);
 
   return (
     <div>
@@ -78,9 +115,9 @@ function DashboardPage() {
         alt="logo"
       />
       <div className="app-name">Copilot</div>
-      <div className="user-greeting">Hello, {username} 👋</div>
+      <div className="user-greeting">Hello, {userInfo["username"]} 👋</div>
       <Button
-        style={{ background: "#424949",borderRadius:"10px" }}
+        style={{ background: "#424949", borderRadius: "10px" }}
         startIcon={<AddBoxIcon />}
         variant="contained"
         className="add-file-button"
@@ -88,6 +125,30 @@ function DashboardPage() {
       >
         New file
       </Button>
+      <div
+        style={{
+          position: "absolute",
+          top: "7%",
+          right: "4%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Avatar
+          style={{ width: "50px", height: "50px" }}
+          sx={{ bgcolor: "#b400ff" }}
+        >
+          <AccountCircleIcon />
+        </Avatar>
+        <Typography
+          variant="caption"
+          style={{ color: "white", marginTop: "5px" }}
+        >
+          My Profile
+        </Typography>
+      </div>
+
       <Backdrop
         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={show_input}
@@ -128,7 +189,7 @@ function DashboardPage() {
                 background: "#424949",
               }}
               onClick={() => {
-                create_new_file(new_filename);
+                CreateNewFile(new_filename);
               }}
             >
               create
@@ -183,9 +244,6 @@ function DashboardPage() {
                           last opened:
                           {moment(last_opened).format("YYYY-MM-DD")}
                         </Typography>
-                        <Typography variant="body1">
-
-                        </Typography>
                         <Button
                           style={{
                             background: "#424949",
@@ -200,6 +258,22 @@ function DashboardPage() {
                           }}
                         >
                           edit
+                        </Button>
+                        <Button
+                          style={{
+                            background: "#de2b51",
+                            position: "relative",
+                            top: "3vh",
+                            borderRadius: "10px",
+                            marginLeft: "10px",
+                          }}
+                          startIcon={<DeleteIcon />}
+                          variant="contained"
+                          onClick={() => {
+                            HandleFileDelete(file_id);
+                          }}
+                        >
+                          delete
                         </Button>
                       </CardContent>
                     </Card>

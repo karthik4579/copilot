@@ -6,7 +6,6 @@ import Box from "@mui/material/Box";
 import "@/styles/texteditorpage.css";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import client from "@/utils/GetAiClient";
 import { useHotkeys } from "react-hotkeys-hook";
 import "@/styles/texteditorpage.css";
 import Snackbar from "@mui/material/Snackbar";
@@ -19,20 +18,25 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Card from "@mui/material/Card";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import moment from "moment";
-import { ToggleButton } from 'primereact/togglebutton';
+import { ToggleButton } from "primereact/togglebutton";
 import axios from "axios";
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import "@/styles/texteditorpage.css"
-
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import Avatar from "@mui/material/Avatar";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import CircularProgress from '@mui/material/CircularProgress';
+import "@/styles/texteditorpage.css";
 
 function TextEditor() {
   const [CurrentSuggestion, SetCurrentSuggestion] = useState("");
   const [EditorContent, setEditorContent] = useState("");
   const [passedFileData, setPassedFileData] = useState("");
+  const [SpinnerState, setSpinnerState] = useState(false);
   const [NotificationStatus, setNotificationStatus] = useState(false);
   const [checked, setChecked] = useState(false);
-
+  const [UsrToken, setUsrToken] = useState("")
 
   const location = useLocation();
   const editorRef = useRef(null);
@@ -43,7 +47,12 @@ function TextEditor() {
 
   function ConditionalAiCardContents() {
     const finaldata = CurrentSuggestion;
-    if (CurrentSuggestion) {
+    if(SpinnerState){
+      return(
+        <CircularProgress size={120} style={{color:"white", position: "relative",top: "30% "}}/>
+      )
+    }
+    else if (CurrentSuggestion) {
       return (
         <div>
           {Object.entries(finaldata).map(([key, value], index) => (
@@ -58,47 +67,62 @@ function TextEditor() {
                 <Typography variant="body1" style={{ padding: "1%" }}>
                   {<AutoAwesomeIcon />} Copilot's version:{" "}
                 </Typography>
-                <Typography style={{paddingBottom:"4vh",}} variant="body1">{value}</Typography>
-                <Box sx={{
-                position: "relative",
-                top:"1.5vh",
-                border: "2px solid white",
-                borderRadius: "10px",
-                width: "12vw",
-                height: "6vh",
-                padding:"1%",
-                background: "#424949",
-                display:"flex",
-                alignItems:"center",
-              }}>
-                <ToggleButton style={{color:"white"}} onLabel="Highlight ON" offLabel="Highlight OFF" onIcon={<VisibilityIcon/>} offIcon={<VisibilityIcon/>} 
-                checked={checked} onChange={(e) => {
-                  console.log(e.value)
-                  setChecked(e.value)
-                  HighlightText(key,e.value)}} className="highlight-toggle" />
-              </Box>
-              <Button startIcon={<AutoFixHighIcon/>} variant="contained"  style={{ background: "#424949" ,border:"2px solid white",borderRadius: "10px",bottom:"6.8vh",left:"19.5vw", width: "12vw",height: "8vh"}} onClick={async()=>{
-                const RawHtml = editorRef.current.getContent().replace("&nbsp;", "");
-                const NewRawHtml = RawHtml.replace(
-                  `${key}`,
-                  `${value}`
-                );
-                setEditorContent(NewRawHtml);
-                editorRef.current.setContent(NewRawHtml);
-                const filedata = { file_data: NewRawHtml };
-        await axios.patch(
-          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
-          filedata,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal",
-            },
-          }
-        );
-              }}>Replace</Button>
+                <Typography style={{ paddingBottom: "4vh" }} variant="body1">
+                  {value}
+                </Typography>
+                <Box
+                  sx={{
+                    position: "relative",
+                    top: "1.5vh",
+                    border: "2px solid white",
+                    borderRadius: "10px",
+                    width: "12vw",
+                    height: "6vh",
+                    padding: "1%",
+                    background: "#424949",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <ToggleButton
+                    style={{ color: "white" }}
+                    onLabel="Highlight ON"
+                    offLabel="Highlight OFF"
+                    onIcon={<VisibilityIcon />}
+                    offIcon={<VisibilityOffIcon />}
+                    checked={checked}
+                    onChange={(e) => {
+                      setChecked(e.value);
+                      HighlightText(key, e.value);
+                    }}
+                    className="highlight-toggle"
+                  />
+                </Box>
+                <Button
+                  startIcon={<AutoFixHighIcon />}
+                  variant="contained"
+                  style={{
+                    background: "#424949",
+                    border: "2px solid white",
+                    borderRadius: "10px",
+                    bottom: "6.8vh",
+                    left: "19.5vw",
+                    width: "12vw",
+                    height: "8vh",
+                  }}
+                  onClick={async () => {
+                    const RawHtml = editorRef.current
+                      .getContent()
+                      .replace("&nbsp;", "");
+                    const NewRawHtml = RawHtml.replace(`${key}`, `${value}`);
+                    setEditorContent(NewRawHtml);
+                    editorRef.current.setContent(NewRawHtml);
+                    const filedata = { file_data: NewRawHtml };
+                    await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id)
+                  }}
+                >
+                  Replace
+                </Button>
               </AccordionDetails>
             </Accordion>
           ))}
@@ -124,27 +148,23 @@ function TextEditor() {
   useEffect(() => {
     const fileData = location.state;
     setPassedFileData(fileData);
-    async () => {
-      const { data, error } = await supabase
+    async function updateLastOpenedStatus(){
+      const OpenedTimeAndDate = moment().format("YYYY-MM-DDTHH:mm:ss")
+      const FileID = fileData.file_id
+      const updateData = await supabase
         .from("file_data")
-        .update({ last_opened: moment().format("YYYY-MM-DDTHH:mm:ss") })
-        .eq("file_id", passedFileData.file_id);
-      setEditorContent(passedFileData.file_data);
+        .update({ last_opened: OpenedTimeAndDate })
+        .eq("file_id", FileID);
     };
+    updateLastOpenedStatus();
   }, []);
 
   useEffect(() => {
     async function get_file_data() {
-      const filedata = await axios.get(
-        `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}&select=file_data`,
-        {
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-            Authorization: import.meta.env.VITE_SUPABASE_ANON_KEY,
-          },
-        }
-      );
-      setEditorContent(filedata.data[0].file_data);
+      const FileData = await supabase.from("file_data").select("file_data").eq("file_id",passedFileData.file_id)
+      setEditorContent(FileData["data"][0]["file_data"]);
+      const CurrentUsrSession = await supabase.auth.getSession()
+      setUsrToken(CurrentUsrSession["data"]["session"]["access_token"])
     }
     get_file_data();
   }, [passedFileData]);
@@ -155,18 +175,7 @@ function TextEditor() {
       if (editorRef.current) {
         setNotificationStatus(true);
         const filedata = { file_data: documentContent };
-        await axios.patch(
-          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
-          filedata,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal",
-            },
-          }
-        );
+        await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id)
         setEditorContent(documentContent);
       }
     } else {
@@ -175,18 +184,7 @@ function TextEditor() {
       if (editorRef.current) {
         setNotificationStatus(true);
         const filedata = { file_data: documentContent2 };
-        await axios.patch(
-          `https://acntcodexyulyykuhcxh.supabase.co/rest/v1/file_data?file_id=eq.${passedFileData.file_id}`,
-          filedata,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal",
-            },
-          }
-        );
+        await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id);
         setEditorContent(documentContent2);
       }
     }
@@ -215,50 +213,28 @@ function TextEditor() {
   }
 
   async function get_ai_response(type) {
-    const GrammarResponse = await fetch(
-      "https://gist.githubusercontent.com/karthik4579/496a2a095355a952d18bc6b29e348d78/raw/9cf68455e7c2ad62c51aa2b69ea0208eb264b776/grammar_prompt.txt"
-    );
-    const GrammarTxtContents = await GrammarResponse.text();
-
-    const CreativeResponse = await fetch(
-      "https://gist.githubusercontent.com/karthik4579/3995b4d40e565ea3f552fe4737edd8f0/raw/09a31d2a9bddf71b97cd13a79dc6969fac2b7a70/creative_prompt.txt"
-    );
-    const CreativeTxtContents = await CreativeResponse.text();
-
     const InputText = editorRef.current.getContent();
     const parser = new DOMParser();
     const HtmlDoc = parser.parseFromString(InputText, "text/html");
     const ProcessedInput = HtmlDoc.documentElement.textContent;
+    console.log(import.meta.env.BACKEND_URL)
+    const BackendUrl = new URL("/generate-suggestions",import.meta.env.VITE_BACKEND_URL).href
+    console.log(BackendUrl)
     if (type == "grammar") {
-      const response = await client.chat.completions.create({
-        messages: [
-          { role: "system", content: GrammarTxtContents },
-          { role: "user", content: "INPUT TEXT:" + "\n" + "" + ProcessedInput },
-        ],
-        model: "mixtral-8x7b-32768",
-        temperature: 0.5,
-        top_p: 0.55,
-        stream: false,
-        max_tokens: 4000,
-        response_format: { type: "json_object" },
-      });
+      const response = await axios.post(BackendUrl,{
+        "type" : "grammar",
+        "input_text" : ProcessedInput
+      },{
+        "Authorization" : `Bearer ${UsrToken}`
+      })
       return JSON.parse(response.choices[0].message.content);
     } else {
-      const parser = new DOMParser();
-      const HtmlDoc = parser.parseFromString(InputText, "text/html");
-      const ProcessedInput = HtmlDoc.documentElement.textContent;
-      const response = await client.chat.completions.create({
-        messages: [
-          { role: "system", content: CreativeTxtContents },
-          { role: "user", content: "INPUT TEXT:" + "\n" + "" + ProcessedInput },
-        ],
-        model: "mixtral-8x7b-32768",
-        temperature: 0.7,
-        top_p: 0.9,
-        stream: false,
-        max_tokens: 4000,
-        response_format: { type: "json_object" },
-      });
+      const response = await axios.post(BackendUrl,{
+        "type" : "creative",
+        "input_text" : ProcessedInput
+      },{
+        "Authorization" : `Bearer ${UsrToken}`
+      })
       return JSON.parse(response.choices[0].message.content);
     }
   }
@@ -304,8 +280,10 @@ function TextEditor() {
           variant="contained"
           style={{ background: "#424949" }}
           onClick={async () => {
+            setSpinnerState(true);  
             let results = await get_ai_response("creative");
             SetSuggestion(results);
+            setSpinnerState(false);
           }}
         >
           Creative suggestions
@@ -316,14 +294,26 @@ function TextEditor() {
           variant="contained"
           style={{ background: "#424949" }}
           onClick={async () => {
+            setSpinnerState(true);
             let results = await get_ai_response("grammar");
             SetSuggestion(results);
-            console.log(CurrentSuggestion);
+            setSpinnerState(false);
           }}
         >
           Grammar suggestions
         </Button>
-
+        <Button
+          variant="contained"
+          style={{ background: "#424949" }}
+          className="clear-all-button"
+          startIcon={<DeleteForeverIcon />}
+          onClick={() => {
+            SetSuggestion("");
+            setSpinnerState(false);
+          }}
+        >
+          clear all suggestions
+        </Button>
         <Card
           style={{
             position: "absolute",
@@ -353,13 +343,19 @@ function TextEditor() {
             alt="logo"
           ></img>
           <div className="app-name">Copilot</div>
+          <Avatar
+            style={{ position: "absolute", left: "96%", bottom: "90%" }}
+            sx={{ bgcolor: "#b400ff" }}
+          >
+            <AccountCircleIcon />
+          </Avatar>
           <Box style={{ position: "absolute", bottom: "5vh", left: "2.5vw" }}>
             <Typography
               sx={{
                 border: "2px solid grey",
-                borderRadius: "10px",
-                width: "12vw",
-                height: "auto",
+                borderRadius: "8px",
+                width: "20vw",
+                height: "5vh",
                 padding: "1px",
               }}
               variant="h6"
@@ -390,7 +386,7 @@ function TextEditor() {
                 width: 660,
                 menubar: true,
                 plugins:
-                  "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown",
+                  "anchor export autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown",
                 toolbar:
                   "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat",
                 tinycomments_mode: "embedded",
@@ -403,7 +399,6 @@ function TextEditor() {
       </div>
     );
   }
-  // if()
 }
 
 export default TextEditor;

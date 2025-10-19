@@ -9,9 +9,9 @@ body {
 
 .creative-ai-button{
   position: absolute;
-  width: 15vw;
+  width: 11vw;
   height: 4vw;
-  left: 61%;
+  left: 59%;
   top: 7vh;
 }
 .right-side-shade {
@@ -25,12 +25,20 @@ body {
 
 .grammar-ai-button{
   position: absolute;
-  width: 15vw;
+  width: 11vw;
   height: 4vw;
-  left: 64%;
+  left: 60.5%;
   top: 7vh;
 }
 
 .highlight-toggle{
   color: white;
+}
+
+.clear-all-button{
+  position: absolute;
+  width: 11vw;
+  height: 4vw;
+  left: 62%;
+  top: 7vh;
 }

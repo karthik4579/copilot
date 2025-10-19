@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import "@/styles/authpage.css";
@@ -10,41 +10,37 @@ import supabase from "@/utils/GetSupabaseClient";
 import Cookies from "js-cookie";
 import { generateUsername } from "friendly-username-generator";
 
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event == "SIGNED_IN") {
-    const user = await supabase.auth.getUser();
-    const { Username, fetch_error } = await supabase
-      .from("user_data")
-      .select("user_name")
-      .eq("user_id", user["data"]["user"]["id"]);
-    if (Username) {
-      Cookies.set("id", user["data"]["user"]["id"]);
-      Cookies.set("auth_status", user["data"]["user"]["role"]);
-    } else {
-      const options = {
-        useHyphen: false,
-      };
-      const NewUsername = generateUsername(options);
-      const { data, error } = await supabase
+function AuthenticationPage() {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if(Cookies.get("auth_status") == "SIGNED_IN"){
+        navigate("/dashboard")
+      }
+});
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event == "SIGNED_IN") {
+      const Username = await supabase
         .from("user_data")
-        .insert([
+        .select("user_name")
+        .eq("user_id", session["user"]["id"]);
+      if (Cookies.get("auth_status") == "SIGNED_IN"){
+      }
+      else{
+        Cookies.set("auth_status", event, { expires: 1 });
+      }
+      if (Username["data"].length == 0) {
+        const NewUsername = generateUsername({
+          useHyphen: false,
+        });
+        const { data, error } = await supabase.from("user_data").insert([
           {
-            user_id: user["data"]["user"]["id"],
-            user_email: user["data"]["user"]["email"],
+            user_id: session["user"]["id"],
+            user_email: session["user"]["email"],
             user_name: NewUsername,
           },
         ]);
-      Cookies.set("id", user["data"]["user"]["id"]);
-      Cookies.set("auth_status", user["data"]["user"]["role"]);
-    }
-  }
-});
-
-function AuthenticationPage() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (Cookies.get("id") && Cookies.get("auth_status") == "authenticated") {
+      }
       navigate("/dashboard");
     }
   });
@@ -86,7 +82,6 @@ function AuthenticationPage() {
       >
         <div className="auth-card">
           <Auth
-            redirectTo="http://localhost:5173/dashboard"
             supabaseClient={supabase}
             appearance={{
               theme: ThemeSupa,
