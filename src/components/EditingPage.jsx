@@ -26,7 +26,7 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import Avatar from "@mui/material/Avatar";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import CircularProgress from '@mui/material/CircularProgress';
+import CircularProgress from "@mui/material/CircularProgress";
 import "@/styles/texteditorpage.css";
 import StaticMascotLogo from "../assets/copilot_mascot.png";
 
@@ -37,7 +37,7 @@ function TextEditor() {
   const [SpinnerState, setSpinnerState] = useState(false);
   const [NotificationStatus, setNotificationStatus] = useState(false);
   const [checked, setChecked] = useState(false);
-  const [UsrToken, setUsrToken] = useState("")
+  const [UsrToken, setUsrToken] = useState("");
 
   const location = useLocation();
   const editorRef = useRef(null);
@@ -48,12 +48,14 @@ function TextEditor() {
 
   function ConditionalAiCardContents() {
     const finaldata = CurrentSuggestion;
-    if(SpinnerState){
-      return(
-        <CircularProgress size={120} style={{color:"white", position: "relative",top: "30% "}}/>
-      )
-    }
-    else if (CurrentSuggestion) {
+    if (SpinnerState) {
+      return (
+        <CircularProgress
+          size={120}
+          style={{ color: "white", position: "relative", top: "30% " }}
+        />
+      );
+    } else if (CurrentSuggestion) {
       return (
         <div>
           {Object.entries(finaldata).map(([key, value], index) => (
@@ -119,7 +121,10 @@ function TextEditor() {
                     setEditorContent(NewRawHtml);
                     editorRef.current.setContent(NewRawHtml);
                     const filedata = { file_data: NewRawHtml };
-                    await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id)
+                    await supabase
+                      .from("file_data")
+                      .update(filedata)
+                      .eq("file_id", passedFileData.file_id);
                   }}
                 >
                   Replace
@@ -149,23 +154,26 @@ function TextEditor() {
   useEffect(() => {
     const fileData = location.state;
     setPassedFileData(fileData);
-    async function updateLastOpenedStatus(){
-      const OpenedTimeAndDate = moment().format("YYYY-MM-DDTHH:mm:ss")
-      const FileID = fileData.file_id
+    async function updateLastOpenedStatus() {
+      const OpenedTimeAndDate = moment().format("YYYY-MM-DDTHH:mm:ss");
+      const FileID = fileData.file_id;
       const updateData = await supabase
         .from("file_data")
         .update({ last_opened: OpenedTimeAndDate })
         .eq("file_id", FileID);
-    };
+    }
     updateLastOpenedStatus();
   }, []);
 
   useEffect(() => {
     async function get_file_data() {
-      const FileData = await supabase.from("file_data").select("file_data").eq("file_id",passedFileData.file_id)
+      const FileData = await supabase
+        .from("file_data")
+        .select("file_data")
+        .eq("file_id", passedFileData.file_id);
       setEditorContent(FileData["data"][0]["file_data"]);
-      const CurrentUsrSession = await supabase.auth.getSession()
-      setUsrToken(CurrentUsrSession["data"]["session"]["access_token"])
+      const CurrentUsrSession = await supabase.auth.getSession();
+      setUsrToken(CurrentUsrSession["data"]["session"]["access_token"]);
     }
     get_file_data();
   }, [passedFileData]);
@@ -176,7 +184,10 @@ function TextEditor() {
       if (editorRef.current) {
         setNotificationStatus(true);
         const filedata = { file_data: documentContent };
-        await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id)
+        await supabase
+          .from("file_data")
+          .update(filedata)
+          .eq("file_id", passedFileData.file_id);
         setEditorContent(documentContent);
       }
     } else {
@@ -185,7 +196,10 @@ function TextEditor() {
       if (editorRef.current) {
         setNotificationStatus(true);
         const filedata = { file_data: documentContent2 };
-        await supabase.from("file_data").update(filedata).eq("file_id",passedFileData.file_id);
+        await supabase
+          .from("file_data")
+          .update(filedata)
+          .eq("file_id", passedFileData.file_id);
         setEditorContent(documentContent2);
       }
     }
@@ -218,22 +232,37 @@ function TextEditor() {
     const parser = new DOMParser();
     const HtmlDoc = parser.parseFromString(InputText, "text/html");
     const ProcessedInput = HtmlDoc.documentElement.textContent;
-    const BackendUrl = new URL("/generate-suggestions",import.meta.env.VITE_BACKEND_URL).href
+    const BackendUrl = new URL(
+      "/generate-suggestions",
+      import.meta.env.VITE_BACKEND_URL
+    ).href;
     if (type == "grammar") {
-      const response = await axios.post(BackendUrl,{
-        "type" : "grammar",
-        "input_text" : ProcessedInput
-      },{
-        "Authorization" : `Bearer ${UsrToken}`
-      })
+      const response = await axios.post(
+        BackendUrl,
+        {
+          type: "grammar",
+          input_text: ProcessedInput,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${UsrToken}`,
+          },
+        }
+      );
       return JSON.parse(response.choices[0].message.content);
     } else {
-      const response = await axios.post(BackendUrl,{
-        "type" : "creative",
-        "input_text" : ProcessedInput
-      },{
-        "Authorization" : `Bearer ${UsrToken}`
-      })
+      const response = await axios.post(
+        BackendUrl,
+        {
+          type: "creative",
+          input_text: ProcessedInput,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${UsrToken}`,
+          },
+        }
+      );
       return JSON.parse(response.choices[0].message.content);
     }
   }
@@ -279,7 +308,7 @@ function TextEditor() {
           variant="contained"
           style={{ background: "#424949" }}
           onClick={async () => {
-            setSpinnerState(true);  
+            setSpinnerState(true);
             let results = await get_ai_response("creative");
             SetSuggestion(results);
             setSpinnerState(false);
@@ -336,11 +365,7 @@ function TextEditor() {
         </Card>
 
         <div>
-          <img
-            className="app-logo"
-            src={StaticMascotLogo}
-            alt="logo"
-          ></img>
+          <img className="app-logo" src={StaticMascotLogo} alt="logo"></img>
           <div className="app-name">Copilot</div>
           <Avatar
             style={{ position: "absolute", left: "96%", bottom: "90%" }}
