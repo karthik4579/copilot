@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import supabase from "@/utils/GetSupabaseClient";
 import Cookies from "js-cookie";
 import { generateUsername } from "friendly-username-generator";
+import StaticMascotLogo from "../assets/copilot_mascot.png";
 
 function AuthenticationPage() {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ function AuthenticationPage() {
       </motion.div>
       <img
         className="app-logo"
-        src="./src/assets/copilot_mascot.png"
+        src={StaticMascotLogo}
         alt="logo"
       ></img>
       <div className="app-name">Copilot</div>

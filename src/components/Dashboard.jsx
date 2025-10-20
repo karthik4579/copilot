@@ -18,6 +18,7 @@ import Avatar from "@mui/material/Avatar";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // Imported AccountCircleIcon
 import axios from "axios";
 import supabase from "@/utils/GetSupabaseClient";
+import StaticMascotLogo from "../assets/copilot_mascot.png";
 
 function DashboardPage() {
   const [new_filename, set_new_filename] = useState("test_file");
@@ -111,7 +112,7 @@ function DashboardPage() {
     <div>
       <img
         className="app-logo"
-        src="./src/assets/copilot_mascot.png"
+        src={StaticMascotLogo}
         alt="logo"
       />
       <div className="app-name">Copilot</div>
