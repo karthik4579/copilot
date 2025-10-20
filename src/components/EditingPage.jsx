@@ -218,9 +218,7 @@ function TextEditor() {
     const parser = new DOMParser();
     const HtmlDoc = parser.parseFromString(InputText, "text/html");
     const ProcessedInput = HtmlDoc.documentElement.textContent;
-    console.log(import.meta.env.BACKEND_URL)
     const BackendUrl = new URL("/generate-suggestions",import.meta.env.VITE_BACKEND_URL).href
-    console.log(BackendUrl)
     if (type == "grammar") {
       const response = await axios.post(BackendUrl,{
         "type" : "grammar",
