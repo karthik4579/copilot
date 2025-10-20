@@ -28,6 +28,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import CircularProgress from '@mui/material/CircularProgress';
 import "@/styles/texteditorpage.css";
+import StaticMascotLogo from "../assets/copilot_mascot.png";
 
 function TextEditor() {
   const [CurrentSuggestion, SetCurrentSuggestion] = useState("");
@@ -339,7 +340,7 @@ function TextEditor() {
         <div>
           <img
             className="app-logo"
-            src="./src/assets/copilot_mascot.png"
+            src={StaticMascotLogo}
             alt="logo"
           ></img>
           <div className="app-name">Copilot</div>
