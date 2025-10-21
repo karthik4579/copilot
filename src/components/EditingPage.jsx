@@ -237,7 +237,7 @@ function TextEditor() {
       import.meta.env.VITE_BACKEND_URL
     ).href;
     if (type == "grammar") {
-      const response = await axios.post(
+      const { data } = await axios.post(
         BackendUrl,
         {
           type: "grammar",
@@ -249,9 +249,9 @@ function TextEditor() {
           },
         }
       );
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(data.data);
     } else {
-      const response = await axios.post(
+      const { data } = await axios.post(
         BackendUrl,
         {
           type: "creative",
@@ -263,7 +263,7 @@ function TextEditor() {
           },
         }
       );
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(data.data);
     }
   }
 
