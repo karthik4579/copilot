@@ -2,6 +2,14 @@
 
 This is a Frontend written in React and uses Framer motion for animations, supabase for database and Auth and components from Primereact and MaterialUI.
 
+
+## What is Writer's Copilot ? 
+
+Copilot is a react app created to help writers of all kinds improve their writing using AI. Copilot allows writers to correct grammar and have creative suggestions instantly.
+
+## Related repo 
+
+The Backend code for Writer's copilot can be found here : [copilot backend](https://github.com/karthik4579/copilot_backend)
 ## Requirements
 
 - `NodeJS v22+` [Get NodeJS](https://nodejs.org/en/download)
