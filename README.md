@@ -5,7 +5,7 @@ This is a Frontend written in React and uses Framer motion for animations, supab
 
 ## What is Writer's Copilot ? 
 
-Copilot is a react app created to help writers of all kinds improve their writing using AI. Copilot allows writers to correct grammar and have creative suggestions instantly.
+Copilot is a react app created to help writers of all kinds improve their writing using AI. Copilot allows writers to correct grammar and have creative suggestions instantly. Copilot currently uses the `qwen-3-235b-a22b-thinking-2507` hosted on [cerebras](https://www.cerebras.ai/) for generating creative and grammar suggestions. 
 
 ## Related repo 
 
